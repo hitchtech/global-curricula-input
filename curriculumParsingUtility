@@ -1,0 +1,134 @@
+#!/bin/bash
+# Author: Billy Parmenter
+# Last modified: 2021-01-20 4:15
+# Parse the "Curricula Documents.csv" file and
+# download the files from the URLs
+
+
+
+FILE=$1
+OLDIFS=$IFS
+IFS=','
+CURR_ROW=2
+ERROR_COUNT=0
+
+# Check cmd line parameters
+[ $# -gt 1 ] && { echo "Scrpit only takes 1 parameter, -h for help or a csv file";  exit 10; }
+
+# Display help message
+[ $1 == -h ] && { echo "Usage ./curriculumParsingUtility <FILE>"; echo "csv columns must be \"country\" \"region\" \"curriculum name\" \"year\" \"subject\" \"grade\" \"url\""; 
+echo "Files with spaces must be enclosed in double quotes";exit 1; }
+
+# Check that file exists
+[ ! -f $FILE ] && { echo "$FILE file not found"; exit 20; }
+
+
+# Check and create the Curricula directory
+if [ ! -d "Curricula" ]; then
+	mkdir "Curricula"
+fi
+
+
+# Read each line, skipping the first line
+sed 1d $FILE | (while read country region curriculumName year subject grade url
+do
+
+	# Check that the required fields are present
+	if [ ! -z $country ] && [ ! -z $subject ] && [ ! -z $grade ]; then
+
+		CURR_DIR="Curricula"
+	
+		# Check and create the country directory
+		if [ ! -d "$CURR_DIR/$country" ] && [ $country != "N/A" ]; then
+			mkdir "$CURR_DIR/$country"
+		fi
+		
+		# Keep track of the working directory
+		CURR_DIR=$CURR_DIR"/"$country
+		
+		
+		
+		# Check and create the region directory, make sure the region is not "N/A"
+		if [ ! -z $region ] && [ $region != "N/A" ]; then
+			if [ ! -d "$CURR_DIR/$region" ]; then
+				mkdir "$CURR_DIR/$region"
+			fi
+			
+			# Keep track of the working directory
+			CURR_DIR=$CURR_DIR"/"$region
+		fi
+		
+		
+		
+		# Check and create the curriculum name directory, make sure the curriculum name is not "N/A"
+		if [ ! -z $curriculumName ] && [ $curriculumName != "N/A" ]; then
+			if [ ! -d "$CURR_DIR/$curriculumName" ]; then
+				mkdir "$CURR_DIR/$curriculumName"
+			fi
+			
+			# Keep track of the working directory
+			CURR_DIR=$CURR_DIR"/"$curriculumName
+		fi
+		
+
+		# Get date of downloaded
+		if [ ! -d "$CURR_DIR/$(date +"%b-%d-%Y")" ]; then
+			mkdir "$CURR_DIR/$(date +"%b-%d-%Y")"
+		fi
+		
+		# Keep track of the working directory
+		CURR_DIR=$CURR_DIR"/"$(date +"%b-%d-%Y")
+		
+		
+		# Some subjects are mixed and had a "/" in it, change to something else in future
+		CLEAN_SUBJECT=${subject///}
+		
+		# Check and create the subject directory, make sure the year is not "N/A"	
+		if [ ! -d "$CURR_DIR/$CLEAN_SUBJECT" ] && [ $CLEAN_SUBJECT != "N/A" ]; then
+			mkdir "$CURR_DIR/$CLEAN_SUBJECT"
+		fi
+		
+		# Keep track of the working directory
+		CURR_DIR=$CURR_DIR"/"$CLEAN_SUBJECT
+
+
+
+		# Check and create the grade directory, make sure the year is not "N/A"
+		if [ ! -d "$CURR_DIR/$grade" ] && [ $grade != "N/A" ]; then
+			mkdir "$CURR_DIR/$grade"
+		fi
+		
+		# Keep track of the working directory
+		CURR_DIR=$CURR_DIR"/"$grade
+		
+		
+		
+		# Get the resource from the url
+		wget -P $CURR_DIR $url
+		
+	else
+		# Tell user what is missing on what row
+		ERROR_COUNT=$((ERROR_COUNT+1))
+		
+		ERROR_MSG+=$"Missing requirement(s) on row: $CURR_ROW\n"
+		
+		if [ -z $country ] || [ $country == "N/A" ]; then
+			ERROR_MSG+=$"\tMissing country value or value is \"N/A\"\n"
+		fi
+		
+		if [ -z $subject ] || [ $subject == "N/A" ]; then
+			ERROR_MSG+=$"\tMissing subject value or value is \"N/A\"\n"
+		fi
+		
+		if [ -z $grade ] || [ $grade == "N/A" ]; then
+			ERROR_MSG+=$"\tMissing grade value or value is \"N/A\"\n"
+		fi
+		
+		ERROR_MSG+=$"\n"
+	fi
+	
+	CURR_ROW=$((CURR_ROW+1))
+done
+
+echo -e "$ERROR_MSG")
+IFS=$OLDIFS
