@@ -72,12 +72,12 @@ do
 		
 
 		# Get date of downloaded
-		if [ ! -d "$CURR_DIR/$(date +"%b-%d-%Y")" ]; then
-			mkdir "$CURR_DIR/$(date +"%b-%d-%Y")"
+		if [ ! -d "$CURR_DIR/$(date +"%Y-%m-%d")" ]; then
+			mkdir "$CURR_DIR/$(date +"%Y-%m-%d")"
 		fi
 		
 		# Keep track of the working directory
-		CURR_DIR=$CURR_DIR"/"$(date +"%b-%d-%Y")
+		CURR_DIR=$CURR_DIR"/"$(date +"%Y-%m-%d")
 		
 		
 		# Some subjects are mixed and had a "/" in it, change to something else in future
