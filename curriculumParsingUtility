@@ -13,6 +13,7 @@ CURR_ROW=2
 ERROR_COUNT=0
 
 # Check cmd line parameters
+[ $# == 0 ] && { echo "Scrpit takes 1 parameter, -h for help or a csv file";  exit 10; }
 [ $# -gt 1 ] && { echo "Scrpit only takes 1 parameter, -h for help or a csv file";  exit 10; }
 
 # Display help message
