@@ -4,24 +4,49 @@
 # Parse the "Curricula Documents.csv" file and
 # download the files from the URLs
 
+function wget_mirror {
+	WGET_ERROR+=$"\tTrying fallback mirror... "
 
+	if validate_url $MIRROR; then
+		wget -q -P $CURR_DIR $MIRROR
+		wget_return=$?
+
+		if [ $wget_return -ne 0 ]; then
+	                WGET_ERROR+=$"wget fallback mirrror return value: $wget_return\n"
+		else
+        	        WGET_ERROR+=$"success\n"
+		fi
+	else
+		WGET_ERROR+=$"wget fallback mirrror no pdf found.\n"
+	fi
+}
+
+function validate_url(){
+	[[ `wget --server-response --spider $1 2>&1 | grep -i 'Content-Type: application/pdf'` ]]
+}
 
 FILE=$1
 OLDIFS=$IFS
 IFS=','
 CURR_ROW=2
 ERROR_COUNT=0
+MIRROR="http://www.edu.gov.on.ca/eng/curriculum/secondary/cooperative-education-2018s.pdf" #"https://curricula.hitch.video/mirror/"
 
 # Check cmd line parameters
 [ $# == 0 ] && { echo "Scrpit takes 1 parameter, -h for help or a csv file";  exit 10; }
 [ $# -gt 1 ] && { echo "Scrpit only takes 1 parameter, -h for help or a csv file";  exit 10; }
 
+
 # Display help message
-[ $1 == -h ] && { echo "Usage ./curriculumParsingUtility <FILE>"; echo "csv columns must be \"country\" \"region\" \"curriculum name\" \"year\" \"subject\" \"grade\" \"url\""; 
+[ $1 == -h ] && { echo "Usage ./curriculumParsingUtility <FILE>"; echo "csv columns must be \"country\" \"region\" \"curriculum name\" \"year\" \"subject\" \"grade\" \"url\"";
 echo "Files with spaces must be enclosed in double quotes";exit 1; }
+
 
 # Check that file exists
 [ ! -f $FILE ] && { echo "$FILE file not found"; exit 20; }
+
+
+echo "Running..."
 
 
 # Check and create the Curricula directory
@@ -106,13 +131,26 @@ do
 		fi
 
 		# Get the resource from the url
-		wget -P $CURR_DIR $url
+		if validate_url $url; then
+			wget -q -P $CURR_DIR $url
+			wget_return=$?
+
+			if [ $wget_return -ne 0 ]; then
+				WGET_ERROR=$"\nwget $url return value: $wget_return\n"
+				wget_mirror
+				echo -e "$WGET_ERROR"
+			fi
+		else
+			WGET_ERROR=$"\nwget $url no pdf found...\n"
+				wget_mirror
+				echo -e "$WGET_ERROR"
+		fi
 
 	else
 		# Tell user what is missing on what row
 		ERROR_COUNT=$((ERROR_COUNT+1))
 
-		ERROR_MSG+=$"Missing requirement(s) on row: $CURR_ROW\n"
+		ERROR_MSG+=$"/nMissing requirement(s) on row: $CURR_ROW\n"
 
 		if [ -z $country ] || [ $country == "N/A" ]; then
 			ERROR_MSG+=$"\tMissing country value or value is \"N/A\"\n"
@@ -125,12 +163,15 @@ do
 		if [ -z $grade ] || [ $grade == "N/A" ]; then
 			ERROR_MSG+=$"\tMissing grade value or value is \"N/A\"\n"
 		fi
-
-		ERROR_MSG+=$"\n"
 	fi
 
 	CURR_ROW=$((CURR_ROW+1))
 done
 
-echo -e "$ERROR_MSG")
+echo -e "Done!\n"
+
+if [ $ERROR_COUNT -ne 0 ]; then
+	echo -e "$ERROR_MSG"
+fi)
+
 IFS=$OLDIFS
