@@ -8,7 +8,7 @@ function wget_mirror {
 	WGET_ERROR+=$"\tTrying fallback mirror... "
 
 	if validate_url $MIRROR; then
-		wget -q -P $CURR_DIR $MIRROR
+		wget -q --show-progress -P $CURR_DIR $MIRROR
 		wget_return=$?
 
 		if [ $wget_return -ne 0 ]; then
@@ -65,7 +65,7 @@ do
 		CURR_DIR="Curricula"
 
 		# Check and create the country directory
-		if [ ! -d "$CURR_DIR/$country" ] && [ $country != "N/A" ]; then
+		if [ ! -d "$CURR_DIR/$country" ] && [ "$country" != "N/A" ]; then
 			mkdir "$CURR_DIR/$country"
 		fi
 
@@ -75,7 +75,7 @@ do
 
 
 		# Check and create the region directory, make sure the region is not "N/A"
-		if [ ! -z $region ] && [ $region != "N/A" ]; then
+		if [ ! -z $region ] && [ "$region" != "N/A" ]; then
 			if [ ! -d "$CURR_DIR/$region" ]; then
 				mkdir "$CURR_DIR/$region"
 			fi
@@ -87,7 +87,7 @@ do
 
 
 		# Check and create the curriculum name directory, make sure the curriculum name is not "N/A"
-		if [ ! -z $curriculumName ] && [ $curriculumName != "N/A" ]; then
+		if [ ! -z $curriculumName ] && [ "$curriculumName" != "N/A" ]; then
 			if [ ! -d "$CURR_DIR/$curriculumName" ]; then
 				mkdir "$CURR_DIR/$curriculumName"
 			fi
@@ -110,7 +110,7 @@ do
 		CLEAN_SUBJECT=${subject///}
 
 		# Check and create the subject directory, make sure the year is not "N/A"
-		if [ ! -d "$CURR_DIR/$CLEAN_SUBJECT" ] && [ $CLEAN_SUBJECT != "N/A" ]; then
+		if [ ! -d "$CURR_DIR/$CLEAN_SUBJECT" ] && [ "$CLEAN_SUBJECT" != "N/A" ]; then
 			mkdir "$CURR_DIR/$CLEAN_SUBJECT"
 		fi
 
@@ -120,7 +120,7 @@ do
 
 
 		# Check and create the grade directory, make sure the grade is not "N/A"
-		if [ ! -z "$CURR_DIR/$grade" ] && [ $grade != "N/A" ]; then
+		if [ ! -z "$CURR_DIR/$grade" ] && [ "$grade" != "N/A" ]; then
 			if [ ! -d "$CURR_DIR/$grade" ]; then
 				mkdir "$CURR_DIR/$grade"
 			fi
@@ -132,7 +132,7 @@ do
 
 		# Get the resource from the url
 		if validate_url $url; then
-			wget -q -P $CURR_DIR $url
+			wget -q --show-progress -P $CURR_DIR $url
 			wget_return=$?
 
 			if [ $wget_return -ne 0 ]; then
